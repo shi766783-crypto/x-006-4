@@ -1,17 +1,38 @@
 <script setup lang="ts">
-import { fileToBase64 } from '../../utils/image'
+import { ref } from 'vue'
+import {
+  IMAGE_ACCEPT_ATTR,
+  readImageAsDataURL,
+  validateImageFile,
+} from '../../utils/image'
 
 const props = defineProps<{ modelValue?: string; label?: string }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: string): void }>()
 
+const errorMsg = ref('')
+
 async function onChange(event: Event) {
-  const file = (event.target as HTMLInputElement).files?.[0]
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
   if (!file) return
-  emit('update:modelValue', await fileToBase64(file))
+  errorMsg.value = ''
+
+  const check = validateImageFile(file)
+  if (!check.ok) {
+    errorMsg.value = check.message || '文件格式不支持'
+    return
+  }
+  try {
+    emit('update:modelValue', await readImageAsDataURL(file))
+  } catch (err) {
+    errorMsg.value = err instanceof Error ? err.message : '图片读取失败'
+  }
 }
 
 function clear() {
   emit('update:modelValue', '')
+  errorMsg.value = ''
 }
 </script>
 
@@ -23,8 +44,9 @@ function clear() {
     </div>
     <label v-else class="trigger">
       <span>📷 {{ props.label || '上传图片' }}</span>
-      <input type="file" accept="image/*" hidden @change="onChange" />
+      <input type="file" :accept="IMAGE_ACCEPT_ATTR" hidden @change="onChange" />
     </label>
+    <p v-if="errorMsg" class="upload-error" role="alert">⚠️ {{ errorMsg }}</p>
   </div>
 </template>
 
@@ -72,5 +94,16 @@ function clear() {
   color: #fff;
   cursor: pointer;
   line-height: 1;
+}
+.upload-error {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--danger-color);
+  background: #fdecea;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  padding: 6px 10px;
+  max-width: 260px;
 }
 </style>

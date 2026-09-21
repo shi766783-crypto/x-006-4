@@ -3,6 +3,7 @@ import { ACHIEVEMENTS } from '../constants'
 import { StorageService } from '../services/storage'
 import type {
   Achievement,
+  CheckupReport,
   DoseStatus,
   FamilyMember,
   HealthMetric,
@@ -23,6 +24,7 @@ interface FamilyState {
   plans: MedicationPlan[]
   logs: MedicationLog[]
   records: MedicalRecord[]
+  checkups: CheckupReport[]
   unlockedAchievements: Record<string, number>
 }
 
@@ -33,6 +35,7 @@ function loadState(): FamilyState {
     plans: StorageService.loadPlans(),
     logs: StorageService.loadLogs(),
     records: StorageService.loadRecords(),
+    checkups: StorageService.loadCheckups(),
     unlockedAchievements: StorageService.loadAchievements(),
   }
 }
@@ -48,6 +51,7 @@ function createStore() {
       plans: state.plans,
       logs: state.logs,
       records: state.records,
+      checkups: state.checkups,
     })
     for (const [id, ts] of Object.entries(unlocked)) {
       if (!(id in state.unlockedAchievements)) {
@@ -63,6 +67,7 @@ function createStore() {
     StorageService.savePlans(state.plans)
     StorageService.saveLogs(state.logs)
     StorageService.saveRecords(state.records)
+    StorageService.saveCheckups(state.checkups)
     StorageService.saveAchievements(state.unlockedAchievements)
   }
 
@@ -83,6 +88,7 @@ function createStore() {
     state.plans = state.plans.filter((p) => p.memberId !== id)
     state.logs = state.logs.filter((l) => l.memberId !== id)
     state.records = state.records.filter((r) => r.memberId !== id)
+    state.checkups = state.checkups.filter((r) => r.memberId !== id)
     commit()
   }
 
@@ -174,6 +180,17 @@ function createStore() {
 
   function deleteRecord(id: string) {
     state.records = state.records.filter((r) => r.id !== id)
+    commit()
+  }
+
+  // ---- checkup reports ----
+  function addCheckup(report: Omit<CheckupReport, 'id' | 'createdAt'>) {
+    state.checkups.push({ ...report, id: uid(), createdAt: Date.now() })
+    commit()
+  }
+
+  function deleteCheckup(id: string) {
+    state.checkups = state.checkups.filter((r) => r.id !== id)
     commit()
   }
 
@@ -278,6 +295,8 @@ function createStore() {
     logDose,
     addRecord,
     deleteRecord,
+    addCheckup,
+    deleteCheckup,
     // derived
     expiredMedicines,
     expiringMedicines,

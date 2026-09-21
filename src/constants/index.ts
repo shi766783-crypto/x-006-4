@@ -76,6 +76,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   { id: 'medicine_master', name: '药品管理师', icon: '🗃️', description: '药箱中拥有 10 种药品' },
   { id: 'zero_expired', name: '药品零过期', icon: '✅', description: '药箱中无过期药品' },
   { id: 'first_record', name: '就医记录员', icon: '🏥', description: '记录第一次就医事件' },
+  { id: 'first_checkup', name: '体检归档员', icon: '📋', description: '归档第一份体检报告' },
   { id: 'first_plan', name: '用药规划师', icon: '📅', description: '创建第一个用药计划' },
   { id: 'long_term', name: '长期坚持', icon: '💪', description: '建立持续 30 天及以上的用药计划' },
   { id: 'on_time_7', name: '按时服药7天', icon: '⏰', description: '有 7 天全部按时服药' },

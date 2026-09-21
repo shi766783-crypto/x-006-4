@@ -1,4 +1,5 @@
 import type {
+  CheckupReport,
   FamilyMember,
   Medicine,
   MedicationLog,
@@ -13,6 +14,7 @@ export interface AchievementInput {
   plans: MedicationPlan[]
   logs: MedicationLog[]
   records: MedicalRecord[]
+  checkups: CheckupReport[]
 }
 
 function planDurationDays(plan: MedicationPlan): number {
@@ -72,6 +74,7 @@ export function evaluateAchievements(input: AchievementInput): Record<string, nu
   if (input.medicines.length >= 10) unlock('medicine_master')
   if (input.medicines.length >= 1 && !hasExpired) unlock('zero_expired')
   if (input.records.length >= 1) unlock('first_record')
+  if (input.checkups.length >= 1) unlock('first_checkup')
   if (input.plans.length >= 1) unlock('first_plan')
   if (input.plans.some((p) => planDurationDays(p) >= 30)) unlock('long_term')
   if (onTimeDays(input.logs) >= 7) unlock('on_time_7')

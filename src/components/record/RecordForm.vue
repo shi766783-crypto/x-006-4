@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useFamilyStore } from '../../stores/useFamilyStore'
 import type { MedicalRecord } from '../../types'
 import { todayStr } from '../../utils/date'
-import { fileToBase64 } from '../../utils/image'
+import { readImageAsDataURL, validateImageFile } from '../../utils/image'
 
 const emit = defineEmits<{
   (e: 'save', data: Omit<MedicalRecord, 'id'>): void
@@ -25,17 +25,33 @@ const form = reactive({
   attachments: [] as string[],
 })
 
+const uploadError = ref('')
+
 async function onFiles(event: Event) {
-  const files = (event.target as HTMLInputElement).files
+  const input = event.target as HTMLInputElement
+  const files = input.files
+  input.value = ''
   if (!files) return
+  uploadError.value = ''
+  const failed: string[] = []
   for (const file of Array.from(files)) {
-    form.attachments.push(await fileToBase64(file))
+    const check = validateImageFile(file)
+    if (!check.ok) {
+      failed.push(check.message || '文件格式不支持')
+      continue
+    }
+    try {
+      form.attachments.push(await readImageAsDataURL(file))
+    } catch (err) {
+      failed.push(err instanceof Error ? err.message : '图片读取失败')
+    }
   }
-  ;(event.target as HTMLInputElement).value = ''
+  if (failed.length) uploadError.value = failed.join('；')
 }
 
 function removeAttachment(index: number) {
   form.attachments.splice(index, 1)
+  uploadError.value = ''
 }
 
 function submit() {
@@ -104,9 +120,16 @@ function submit() {
         </div>
         <label class="attach-add">
           <span>＋ 上传</span>
-          <input type="file" accept="image/*" multiple hidden @change="onFiles" />
+          <input
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp,.gif"
+            multiple
+            hidden
+            @change="onFiles"
+          />
         </label>
       </div>
+      <p v-if="uploadError" class="attach-error" role="alert">⚠️ {{ uploadError }}</p>
     </div>
   </div>
   <div class="form-actions">
@@ -161,5 +184,15 @@ function submit() {
   cursor: pointer;
   font-size: 13px;
   color: var(--text-secondary);
+}
+.attach-error {
+  flex-basis: 100%;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--danger-color);
+  background: #fdecea;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  padding: 6px 10px;
 }
 </style>

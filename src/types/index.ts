@@ -97,6 +97,16 @@ export interface MedicalRecord {
   attachments: string[]
 }
 
+export interface CheckupReport {
+  id: string
+  memberId: string
+  examDate: string
+  hospital: string
+  conclusion: string
+  images: string[]
+  createdAt: number
+}
+
 /** A single dose due today, resolved from a plan + member + medicine. */
 export interface TodayDose {
   planId: string
